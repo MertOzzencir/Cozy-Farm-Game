@@ -36,12 +36,12 @@ public abstract class Tools : MonoBehaviour, IPickable {
         Vector3 startPosition = transform.localPosition + new Vector3(0, 0, _animationDistanceOfZ);
         Vector3 forwardTarget = transform.parent.TransformPoint(startPosition);
         while (Vector3.Distance(transform.position, forwardTarget) > 0.1f) {
-            transform.position = Vector3.Lerp(transform.position, forwardTarget, 0.2f);
+            transform.position = Vector3.MoveTowards(transform.position, forwardTarget, 0.2f);
             yield return null;
 
         }
         while (Vector3.Distance(transform.position, targetPosition.transform.position) > 0.1f) {
-            transform.position = Vector3.Lerp(transform.position, targetPosition.transform.position, 0.2f);
+            transform.position = Vector3.MoveTowards(transform.position, targetPosition.transform.position, 0.2f);
             yield return null;
         }
         ToolAnimation = null;

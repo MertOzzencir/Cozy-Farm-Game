@@ -3,26 +3,35 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class TurretArea : MonoBehaviour {
-    [SerializeField] private Turret _mainTurret;
+    public Turret MainTurret;
 
-    Enemy currentEnemy;
+    Enemy _currentEnemy;
 
     void Update() {
-        transform.position = _mainTurret.transform.position;
+        transform.position = MainTurret.transform.position;
     }
     void OnTriggerEnter(Collider other) {
+        FindEnemy(other);
+    }
+
+    private void FindEnemy(Collider other) {
         Enemy EnemyTarget = other.GetComponent<Enemy>();
-        if (EnemyTarget != null && currentEnemy == null) {
-            currentEnemy = EnemyTarget;
-            _mainTurret.Target = EnemyTarget;
+        if (EnemyTarget != null && _currentEnemy == null) {
+            EnemyTarget.CurrentTurretArea = this;
+            _currentEnemy = EnemyTarget;
+            MainTurret.Target = EnemyTarget;
         }
+    }
+
+    private void OnTriggerStay(Collider other) {
+        FindEnemy(other);
     }
 
     void OnTriggerExit(Collider other) {
         Enemy EnemyTarget = other.GetComponent<Enemy>();
-        if (EnemyTarget != null && currentEnemy == EnemyTarget) {
-            currentEnemy = null;
-            _mainTurret.Target = null;
+        if (EnemyTarget != null && _currentEnemy == EnemyTarget) {
+            _currentEnemy = null;
+            MainTurret.Target = null;
         }
 
     }

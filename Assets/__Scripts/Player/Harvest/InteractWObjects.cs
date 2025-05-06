@@ -10,21 +10,21 @@ public class InteractWObjects : MonoBehaviour {
     [SerializeField] private GameObject _equipTransform;
     [SerializeField] private float _animationTimer;
     [SerializeField] private Tools None;
-    Tools _currentTool;
+    [SerializeField] Tools _currentTool;
 
-    void Awake() {
-        _currentTool = None;
-        EquipTool();
-    }
-    private void Harvest() {
+
+    private void InteractWithObject() {
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
         RaycastHit hit;
         if (Physics.Raycast(ray, out hit, Mathf.Infinity)) {
             IInteractable interactableObject = hit.transform.gameObject.GetComponent<IInteractable>();
             if (interactableObject == null)
                 return;
-            if (_currentTool?.ToolType == interactableObject.ToolType)
-                _currentTool.Use(interactableObject, _equipTransform);
+            if (!(_currentTool?.ToolType == interactableObject.ToolType))
+                return;
+                
+            _currentTool.Use(interactableObject, _equipTransform);
+
         }
     }
 
@@ -44,36 +44,46 @@ public class InteractWObjects : MonoBehaviour {
     }
 
     private void EquipTool() {
-        _currentTool.GetComponent<Rigidbody>().isKinematic = true;
+        ChangeCurrentToolRigidBody(true);
         StartCoroutine(PickToolAnimation(_currentTool.gameObject, _equipTransform.gameObject));
 
     }
 
     private void ResetTool(Tools newTool = null) {
-        _currentTool.GetComponent<Rigidbody>().isKinematic = false;
+        ChangeCurrentToolRigidBody(false);
         _currentTool.Deequip();
         if (newTool == null) {
             _currentTool = None;
+            _currentTool.transform.parent = _equipTransform.transform;
             EquipTool();
             return;
+
         }
         _currentTool = newTool;
+
+    }
+
+    void ChangeCurrentToolRigidBody(bool state) {
+        Rigidbody rb = _currentTool.GetComponent<Rigidbody>();
+        rb.isKinematic = state;
     }
 
     void OnDisable() {
-        InputManager.OnInteract -= Harvest;
+        InputManager.OnInteract -= InteractWithObject;
         Tools.OnToolEquip -= GetToolInfo;
 
     }
 
     void OnEnable() {
-        InputManager.OnInteract += Harvest;
+        InputManager.OnInteract += InteractWithObject;
         Tools.OnToolEquip += GetToolInfo;
     }
 
     IEnumerator PickToolAnimation(GameObject Tool, GameObject Target) {
-        Tool.transform.DOMove(Target.transform.position, _animationTimer, true).SetEase(Ease.InOutBounce);
-        yield return new WaitForSeconds(_animationTimer);
+        while (Vector3.Distance(Tool.transform.position, Target.transform.position) > 0.1f) {
+            Tool.transform.position = Vector3.MoveTowards(Tool.transform.position, Target.transform.position, 0.5f);
+            yield return null;
+        }
         if (!(Vector3.Distance(Tool.transform.position, Target.transform.position) < 0.1f)) {
             Tool.transform.position = Target.transform.position;
         }

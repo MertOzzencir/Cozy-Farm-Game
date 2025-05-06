@@ -6,6 +6,7 @@ public abstract class Enemy : MonoBehaviour {
 
     [SerializeField] private float _speed;
     [SerializeField] private float _health;
+    public TurretArea CurrentTurretArea;
     GameObject _player;
     Vector3 _directionToPlayer;
     Rigidbody _rb;
@@ -31,8 +32,12 @@ public abstract class Enemy : MonoBehaviour {
         if (bullet.State == GeneralState.CanAttack) {
             _health -= bullet.Damage;
             Destroy(collision.gameObject, .4f);
-            if (_health <= 0)
+            if (_health <= 0){
+                if(CurrentTurretArea != null)
+                    CurrentTurretArea.MainTurret.Target = null;
                 Destroy(gameObject);
+
+            }
         }
 
 
